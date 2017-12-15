@@ -185,7 +185,7 @@ class Layer(ResourceBase):
     @property
     def ows_url(self):
         if self.service is not None and self.service.method == INDEXED:
-            result = self.service.base_url
+            result = self.service.service_url
         else:
             result = "{base}ows".format(
                 base=settings.OGC_SERVER['default']['PUBLIC_LOCATION'],

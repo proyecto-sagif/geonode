@@ -824,6 +824,13 @@ def add_layers_to_map_config(request, map_obj, layer_names, add_base_layers=True
 
         layer_bbox = layer.bbox
         # assert False, str(layer_bbox)
+
+        def decimal_encode(bbox):
+            import decimal
+            for o in [float(coord) for coord in bbox]:
+                if isinstance(o, decimal.Decimal):
+                    o = (str(o) for o in [o])
+
         if bbox is None:
             bbox = list(layer_bbox[0:4])
         else:
@@ -844,7 +851,7 @@ def add_layers_to_map_config(request, map_obj, layer_names, add_base_layers=True
         config["wrapDateLine"] = True
         config["srs"] = getattr(
             settings, 'DEFAULT_MAP_CRS', 'EPSG:900913')
-        config["bbox"] = bbox if config["srs"] != 'EPSG:900913' \
+        config["bbox"] = decimal_encode(bbox) if config["srs"] != 'EPSG:900913' \
             else llbbox_to_mercator([float(coord) for coord in bbox])
 
         if layer.storeType == "remoteStore":
@@ -854,12 +861,12 @@ def add_layers_to_map_config(request, map_obj, layer_names, add_base_layers=True
             # sent to remote services.
             ogc_server_url = urlparse.urlsplit(
                 ogc_server_settings.PUBLIC_LOCATION).netloc
-            service_url = urlparse.urlsplit(service.base_url).netloc
+            service_url = urlparse.urlsplit(service.service_url).netloc
 
-            if access_token and ogc_server_url == service_url and 'access_token' not in service.base_url:
-                url = service.base_url + '?access_token=' + access_token
+            if access_token and ogc_server_url == service_url and 'access_token' not in service.service_url:
+                url = service.service_url + '?access_token=' + access_token
             else:
-                url = service.base_url
+                url = service.service_url
             maplayer = MapLayer(map=map_obj,
                                 name=layer.alternate,
                                 ows_url=layer.ows_url,
